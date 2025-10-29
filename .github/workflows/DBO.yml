@@ -1,0 +1,17 @@
+name: DBO Template
+
+on:
+  workflow_call:
+
+jobs:
+  dbo_job:
+    runs-on: windows-latest
+    steps:
+      - name: Print inputs
+        run: |
+          Write-Host -Object "execType=${{ inputs.execType }}";
+          Write-Host -Object "commitHashs=${{ inputs.commitHashs }}";
+          Write-Host -Object "mailCC=${{ inputs.mailCC }}";
+          Write-Host -Object "executeServer=${{ inputs.executeServer }}";
+          Write-Host -Object "customTime=${{ inputs.customTime }}";
+          Write-Host -Object "mailSubjectText=${{ inputs.mailSubjectText }}";
