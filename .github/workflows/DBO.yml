@@ -2,6 +2,26 @@ name: DBO Template
 
 on:
   workflow_call:
+    inputs:
+      execType:
+        required: true
+        type: string
+      commitHashs:
+        required: true
+        type: string
+      mailCC:
+        required: true
+        type: string
+      executeServer:
+        required: true
+        type: string
+      customTime:
+        required: false
+        type: string
+      mailSubjectText:
+        required: false
+        type: string
+  
 
 jobs:
   dbo_job:
