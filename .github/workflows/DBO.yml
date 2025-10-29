@@ -25,7 +25,7 @@ on:
 
 jobs:
   dbo_job:
-    if: ${{ inputs.commitHashs =~ /^(?:[A-Za-z0-9]{7,40},?\b)+$/ }}
+    if: ${{ inputs.commitHashs }}
     runs-on: windows-latest
     steps:
       - name: Print inputs
