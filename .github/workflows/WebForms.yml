@@ -9,6 +9,7 @@ on:
 
 env:
   filePath: 'C:\Users\8542\Desktop\test\test.ps1'
+  ghubPath: 'C:\Users\8542\Documents\gh.exe'
 
 jobs:
   check_build:
@@ -18,7 +19,135 @@ jobs:
       - name: check
         if: ${{ !github.ref_protected && github.event_name == 'push' }}
         run: |
-            git rev-parse --is-shallow-repository;
+            Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass;
+            . $Env:filePath;
+            # 取得完整歷史
+            $isShallow = git rev-parse --is-shallow-repository;
+            if ($isShallow -eq $true) {
+              git fetch --all --tags --unshallow --prune --prune-tags --quiet;
+            }
+            else {
+              git fetch --all --tags --prune --prune-tags --quiet;
+            }
+
+            # 分支變數
+            $branches = & "ghubPath" api /repos/:owner/:repo/branches?protected=true | ConvertFrom-Json;
+
+            # 因 API 呼叫失敗，退出執行
+            if (($null -eq $branches) -or ($null -eq $branches.name)) {
+              throw "❌ API 呼叫失敗，請通知開發維運組";
+            }
+
+            # 提交距離資訊
+            $commitDistanceInfos = @();
+
+            # 迴圈分支計算提交距離
+            foreach ($branch in $branches) {
+            
+              $branch = $branch.name;
+              $startBase = git merge-base HEAD origin/$branch 2>$null;
+              $distance = git rev-list --count "$startBase..HEAD";
+              $commitDistanceInfos += [PSCustomObject]@{
+                branch    = $branch
+                startBase = $startBase
+                distance  = $distance
+              }
+            }
+
+            # 最近提交距離
+            $minCommitDistance = ($commitDistanceInfos.distance | Where-Object { $_ -ne 0 } | Measure-Object -Minimum).Minimum;
+
+            # 最近距離的提交
+            $commitOfMinDistance = $commitDistanceInfos | Where-Object { $_.distance -eq $minCommitDistance } | Select-Object -First 1;
+
+            # 推送分支的提交資訊
+            $commitInfos = git log "$($commitOfMinDistance.startBase)..HEAD" --pretty=format:"%s;name-%an;name-%cn" |  Where-Object { $_ -notlike "Merge *" };
+
+            # 輸出目前檢查的提交主旨
+            Write-Host -Object "=== Pending Check Commit Subject ===";
+            $commitInfos | ForEach-Object {
+              $commitSubject = ($_ -split ";name-")[0];
+              Write-Host -Object $commitSubject;
+            }
+            Write-Host -Object "====================================";
+
+            # 提交類別列表
+            $commitTypes = "om|cr|fix|feat|revert|perf|docs|refactor|test|sql|style|build|ci";
+
+            # 提交主旨正規表達式
+            $commitSubjectRegex = "^(?:$commitTypes)(?:\([A-Za-z0-9_-]+\))?:\s.+";
+
+            # 提交主旨排除前綴
+            $subjectReplaceText = $commitSubjectRegex.Remove($commitSubjectRegex.Length - 2);
+
+            # 錯誤提示文字變數
+            $failMessages = @();
+
+            # 迴圈提交資訊進行檢查
+            foreach ($commitInfo in $commitInfos) {
+              $commitInfoParts = $commitInfo -split ";name-";
+              $commitSubject = $commitInfoParts[0];
+              $author = $commitInfoParts[1];
+              $committer = $commitInfoParts[2];
+
+              # 1. 提交主旨格式檢查
+              if ($commitSubject -cnotmatch $commitSubjectRegex) {
+                $failMessages += "❌ 提交主旨不符合 '<type>(<scope>): <subject>' 格式:";
+                $failMessages += "   錯誤主旨: $commitSubject";
+                $failMessages += "   正確範例: feat: add README";
+                $failMessages += "        feat(api): add user login endpoint";
+                $failMessages += "   可用的 type: $commitTypes";
+                $failMessages += "   scope 允許英數、底線(_)或連字號(-)，可省略";
+                $failMessages += "   若確認格式已符合規範，請重新手動輸入提交訊息";
+              }
+
+              # 2. 單號檢查，單號間不能有空格
+              if ($commitSubject -cnotmatch ":+ .+ \[(REQ|ACC|EBS)-\d+\]") {
+                $failMessages += "❌ 必須包含至少一個單號，單號前需有空格，且不能沒有描述: '<subject> [REQ-xxx] 或 [ACC-xxx] 或 [EBS-xxx]'";
+                $failMessages += "   錯誤主旨: $commitSubject";
+                $failMessages += "   正確範例: feat: add README [REQ-12345]";
+              }
+              elseif ($commitSubject -cnotmatch "^[^\[\]]*(\[(REQ|ACC|EBS)-\d+\])+$") {
+                $failMessages += "❌ 必須將單號之間空格清除";
+                $failMessages += "   錯誤主旨: $commitSubject";
+                $failMessages += "   正確範例: feat: add README [REQ-12345][ACC-12345]";
+              }
+
+              # 3. 主旨長度檢查 (排除前綴的長度不超過 100)
+              $checkSubjectText = $commitSubject -replace $subjectReplaceText;
+              if ($checkSubjectText.Length -gt 100) {
+                $failMessages += "❌ 提交主旨描述過長 (超過 100 ): $commitSubject";
+                $failMessages += "   請精簡主旨描述至 100 字以內 [不含 <type>(<scope>): 前綴]";
+              }
+
+              # 4. 檢查作者及提交者名稱格式
+              # IsCJKUnifiedIdeographs 為判斷中文的正規格式 (4E00 - 9FFF)
+              $isWrongAuthorFormat = $author -notmatch "^\d+\s[\p{IsCJKUnifiedIdeographs}]";
+              $isWrongCommitterFormat = $committer -notmatch "^\d+\s[\p{IsCJKUnifiedIdeographs}]";
+              if (($isWrongAuthorFormat) -or ($isWrongCommitterFormat)) {
+                $failMessages += "❌ 提交者或作者名稱不符合格式:'<員編> <姓名>'";
+                $failMessages += "   錯誤主旨: $commitSubject";
+
+                if ($isWrongAuthorFormat) {
+                  $failMessages += "   錯誤作者格式: $author";
+                }
+                if ($isWrongCommitterFormat) {
+                  $failMessages += "   錯誤提交者格式: $committer";
+                }
+
+                $failMessages += "   正確格式範例: 1234 王大明";
+              }
+            }
+
+            # 提交不符合格式，退出執行
+            if ($failMessages) {
+              $failMessage = $failMessages -join "`n";
+              Write-Host -Object "::error::$failMessage";
+              exit 1;
+            }
+
+            # 提交檢查通過，退出執行
+            Write-Host -Object "✅ 提交檢查通過";
             
       - name: build
         run: |
