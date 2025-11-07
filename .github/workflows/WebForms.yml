@@ -31,7 +31,7 @@ jobs:
             }
 
             # 分支變數
-            $branches = & "ghubPath" api /repos/:owner/:repo/branches?protected=true | ConvertFrom-Json;
+            $branches = & "$Env:ghubPath" api /repos/:owner/:repo/branches?protected=true | ConvertFrom-Json;
 
             # 因 API 呼叫失敗，退出執行
             if (($null -eq $branches) -or ($null -eq $branches.name)) {
