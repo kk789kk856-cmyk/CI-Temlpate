@@ -15,7 +15,6 @@ jobs:
         run: |
             Write-Host -Object "✅ 提交檢查通過";
   build:
-    if: ${{ always() && (needs.check.result == 'success' || github.ref_protected == 'true') }}
     runs-on: self-hosted
     needs: commit-check
     steps:
