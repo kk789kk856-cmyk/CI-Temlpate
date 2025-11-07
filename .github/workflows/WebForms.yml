@@ -1,0 +1,34 @@
+name: WebForms
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: build
+        run: |
+            Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass;
+            . $Env:filePath;
+            New-Section -SectionHeaderText "NuGet 還原套件";
+          
+            New-Section;
+
+            New-Section -SectionHeaderText "MSBuild 重建";
+            
+            New-Section;
+
+            New-Section -SectionHeaderText "複製產物";
+          
+            New-Section;
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: deploy
+        run: |
+            Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass;
+            . $Env:filePath;
+            New-Section -SectionHeaderText "部屬";
+          
+            New-Section;
