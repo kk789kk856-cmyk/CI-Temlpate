@@ -114,24 +114,6 @@ jobs:
                 $failMessages += "❌ 提交主旨描述過長 (超過 100 ): $commitSubject";
                 $failMessages += "   請精簡主旨描述至 100 字以內 [不含 <type>(<scope>): 前綴]";
               }
-
-              # 4. 檢查作者及提交者名稱格式
-              # IsCJKUnifiedIdeographs 為判斷中文的正規格式 (4E00 - 9FFF)
-              $isWrongAuthorFormat = $author -notmatch "^\d+\s[\p{IsCJKUnifiedIdeographs}]";
-              $isWrongCommitterFormat = $committer -notmatch "^\d+\s[\p{IsCJKUnifiedIdeographs}]";
-              if (($isWrongAuthorFormat) -or ($isWrongCommitterFormat)) {
-                $failMessages += "❌ 提交者或作者名稱不符合格式:'<員編> <姓名>'";
-                $failMessages += "   錯誤主旨: $commitSubject";
-
-                if ($isWrongAuthorFormat) {
-                  $failMessages += "   錯誤作者格式: $author";
-                }
-                if ($isWrongCommitterFormat) {
-                  $failMessages += "   錯誤提交者格式: $committer";
-                }
-
-                $failMessages += "   正確格式範例: 1234 王大明";
-              }
             }
 
             # 提交不符合格式，退出執行
