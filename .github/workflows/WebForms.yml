@@ -154,7 +154,9 @@ jobs:
             Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass;
             . $Env:filePath;
             New-Section -SectionHeaderText "部屬";
-          
+            
+            Write-Host -Object $belongGroup;
+            
             New-Section;
   portal_job:
     if: ${{ inputs.run_portal }}
