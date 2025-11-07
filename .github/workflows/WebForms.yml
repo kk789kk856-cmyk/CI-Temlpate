@@ -2,6 +2,10 @@ name: WebForms
 
 on:
   workflow_call:
+      inputs:
+        run_portal:
+          default: false
+          type: boolean
 
 env:
   filePath: 'C:\Users\8542\Desktop\test\test.ps1'
@@ -45,3 +49,15 @@ jobs:
             New-Section -SectionHeaderText "部屬";
           
             New-Section;
+  portal_job:
+    if: ${{ inputs.run_portal == true }}
+    runs-on: self-hosted
+    needs: deploy
+    steps:
+      - name: portal
+        run: |
+            Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass;
+            . $Env:filePath;
+            New-Section -SectionHeaderText "部屬";
+          
+            New-Section;    
