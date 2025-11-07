@@ -7,6 +7,13 @@ env:
   filePath: 'C:\Users\8542\Desktop\test\test.ps1'
 
 jobs:
+  commit-check:
+    if: ${{ github.ref_protected == true && github.event_name == push }}
+    runs-on: self-hosted
+    steps:
+      - name: check
+        run: |
+            Write-Host -Object "✅ 提交檢查通過";
   build:
     runs-on: self-hosted
     steps:
