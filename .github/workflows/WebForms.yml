@@ -11,7 +11,7 @@ env:
   filePath: 'C:\Users\8542\Desktop\test\test.ps1'
 
 jobs:
-  build:
+  check_build:
     runs-on: self-hosted
     steps:
       - name: check
