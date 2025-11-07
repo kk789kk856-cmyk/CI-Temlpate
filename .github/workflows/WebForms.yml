@@ -26,6 +26,7 @@ jobs:
           
             New-Section;
   deploy:
+    if: ${{ github.ref_protected == true }}
     runs-on: self-hosted
     needs: build
     steps:
