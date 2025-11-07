@@ -17,7 +17,7 @@ jobs:
       - name: check
         if: ${{ !github.ref_protected && github.event_name == 'push' }}
         run: |
-            Write-Host -Object "✅ 提交檢查通過";
+            git rev-parse --is-shallow-repository;
             
       - name: build
         run: |
