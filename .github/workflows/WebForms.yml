@@ -33,11 +33,6 @@ jobs:
             # 分支變數
             $branches = & "$Env:ghubPath" api /repos/:owner/:repo/branches?protected=true | ConvertFrom-Json;
 
-            # 因 API 呼叫失敗，退出執行
-            if (($null -eq $branches) -or ($null -eq $branches.name)) {
-              throw "❌ API 呼叫失敗，請通知開發維運組";
-            }
-
             # 提交距離資訊
             $commitDistanceInfos = @();
 
