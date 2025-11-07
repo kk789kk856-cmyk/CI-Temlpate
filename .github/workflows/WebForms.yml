@@ -119,7 +119,7 @@ jobs:
 
               # 提交不符合格式，退出執行
               if ($failMessages) {
-                $failMessage = $failMessages -join "`n";
+                $failMessage = $failMessages -join "%0A";
                 throw $failMessage;
               }
 
