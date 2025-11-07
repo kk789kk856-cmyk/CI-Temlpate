@@ -37,7 +37,7 @@ jobs:
   deploy:
     if: ${{ github.ref_protected == true }}
     runs-on: self-hosted
-    needs: build
+    needs: check_build
     steps:
       - name: deploy
         run: |
