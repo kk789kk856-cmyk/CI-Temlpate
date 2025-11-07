@@ -15,7 +15,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: check
-        if: ${{ github.ref_protected == false && github.event_name == 'push' }}
+        if: ${{ !github.ref_protected && github.event_name == 'push' }}
         run: |
             Write-Host -Object "✅ 提交檢查通過";
             
@@ -35,7 +35,7 @@ jobs:
           
             New-Section;
   deploy:
-    if: ${{ github.ref_protected == true }}
+    if: ${{ github.ref_protected }}
     runs-on: self-hosted
     needs: check_build
     steps:
@@ -47,7 +47,7 @@ jobs:
           
             New-Section;
   portal_job:
-    if: ${{ inputs.run_portal == true }}
+    if: ${{ inputs.run_portal }}
     runs-on: self-hosted
     needs: deploy
     steps:
