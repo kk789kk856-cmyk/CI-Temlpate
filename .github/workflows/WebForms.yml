@@ -3,6 +3,9 @@ name: WebForms
 on:
   workflow_call:
 
+env:
+  filePath: 'C:\Users\8542\Desktop\test\test.ps1'
+
 jobs:
   build:
     runs-on: self-hosted
@@ -24,6 +27,7 @@ jobs:
             New-Section;
   deploy:
     runs-on: self-hosted
+    needs: build
     steps:
       - name: deploy
         run: |
