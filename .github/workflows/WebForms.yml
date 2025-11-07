@@ -16,6 +16,7 @@ jobs:
             Write-Host -Object "✅ 提交檢查通過";
   build:
     runs-on: self-hosted
+    needs: commit-check
     steps:
       - name: build
         run: |
