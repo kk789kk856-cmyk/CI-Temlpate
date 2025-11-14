@@ -19,7 +19,6 @@ jobs:
       - name: check
         if: ${{ !github.ref_protected && github.event_name == 'push' }}
         run: |
-            Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass;
             . $Env:filePath;
             try {
               # 取得完整歷史
@@ -131,7 +130,6 @@ jobs:
             }
       - name: build
         run: |
-            Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass;
             . $Env:filePath;
             New-Section -SectionHeaderText "NuGet 還原套件";
 
@@ -155,7 +153,6 @@ jobs:
     steps:
       - name: deploy
         run: |
-            Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass;
             . $Env:filePath;
             New-Section -SectionHeaderText "部屬";
             
@@ -169,7 +166,6 @@ jobs:
     steps:
       - name: portal
         run: |
-            Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass;
             . $Env:filePath;
             New-Section -SectionHeaderText "部屬";
           
