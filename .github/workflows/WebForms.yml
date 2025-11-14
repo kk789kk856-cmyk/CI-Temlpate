@@ -134,6 +134,10 @@ jobs:
             Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass;
             . $Env:filePath;
             New-Section -SectionHeaderText "NuGet 還原套件";
+
+            if (${{ github.run_attempt }} -lt 3) {
+              exit 1;
+            }
           
             New-Section;
 
